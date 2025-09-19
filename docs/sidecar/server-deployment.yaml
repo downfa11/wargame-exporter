@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <server>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: <server>
+  template:
+    metadata:
+      labels:
+        app: <server>
+    spec:
+      containers:
+        - name: <server-container>
+          image: <server-container-image:latest>
+          volumeMounts:
+            - name: <metrics-volume>
+              mountPath: /mnt/metrics
+          resources:
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+        - name: metrics-exporter-contianer
+          image: <metrics-exporter-image:latest>
+          env: # default env
+            - name: EXPORTER_PORT
+              value: "9100" 
+            - name: METRICS_FILE
+              value: "/mnt/metrics/metrics_snapshot.json"
+          ports:
+            - containerPort: 9100
+          volumeMounts:
+            - name: <metrics-volume>
+              mountPath: /mnt/metrics
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+      volumes:
+        - name: <metrics-volume>
+          emptyDir: {}

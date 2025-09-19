@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-exporter
+  template:
+    metadata:
+      labels:
+        app: metrics-exporter
+    spec:
+      containers:
+        - name: metrics-exporter-container
+          image: <metrics-exporter-image:latest>
+          env: # defualt env
+            - name: EXPORTER_PORT 
+              value: "9100"
+            - name: METRICS_FILE
+              value: "/mnt/metrics/metrics_snapshot.json"
+          ports:
+            - containerPort: 9100
+          volumeMounts:
+            - name: <metrics-volume>
+              mountPath: /mnt/metrics
+      volumes:
+        - name: <metrics-volume>
+          persistentVolumeClaim:
+            claimName: metrics-pvc

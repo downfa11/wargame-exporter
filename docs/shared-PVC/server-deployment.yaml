@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <server>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: <server>
+  template:
+    metadata:
+      labels:
+        app: <server>
+    spec:
+      containers:
+        - name: <server-container>
+          image: <server-contianer-image:latest>
+          volumeMounts:
+            - name: <metrics-volume>
+              mountPath: <mount directory> # /mnt/metrics
+      volumes:
+        - name: <metrics-volume>
+          persistentVolumeClaim:
+            claimName: metrics-pvc
