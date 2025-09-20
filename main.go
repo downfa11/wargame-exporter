@@ -9,10 +9,15 @@ import (
 	"os"
 )
 
-type Metrics struct { // custom metrics
-	ActivePlayers  int `json:"active_players"`
-	MatchQueueSize int `json:"match_queue_size"`
-	AvgLatencyMs   int `json:"avg_latency_ms"`
+// Metrics – custom metrics snapshot
+type Metrics struct {
+	ActivePlayers          int     `json:"active_players"`            // 현재 사용자 수
+	ActiveRooms            int     `json:"active_rooms"`              // 현재 진행 중인 방 수
+	CPUUsagePercent        float64 `json:"cpu_usage_percent"`         // CPU 사용률 (%)
+	MemoryUsageBytes       int64   `json:"memory_usage_bytes"`        // RAM 사용량 (bytes)
+	AvgLatencyMs           int     `json:"avg_latency_ms"`            // 평균 네트워크 지연 (ms)
+	PacketLossRatioPercent float64 `json:"packet_loss_ratio_percent"` // 패킷 손실률 (%)
+	KafkaMatchingMessages  int     `json:"kafka_matching_messages"`   // 매칭 데이터 수신 메시지 수(누적)
 }
 
 func metricsHandler(metricsFile string) http.HandlerFunc {
@@ -29,10 +34,17 @@ func metricsHandler(metricsFile string) http.HandlerFunc {
 			return
 		}
 
+		m.MemoryUsageBytes = int64(m.MemoryUsageBytes) * 1024 * 1024
 		w.Header().Set("Content-Type", "text/plain; version=0.0.4")
-		fmt.Fprintf(w, "active_players %d\n", m.ActivePlayers)
-		fmt.Fprintf(w, "match_queue_size %d\n", m.MatchQueueSize)
-		fmt.Fprintf(w, "avg_latency_ms %d\n", m.AvgLatencyMs)
+		w.Write([]byte(
+			fmt.Sprintf("active_players %d\n", m.ActivePlayers) +
+				fmt.Sprintf("active_rooms %d\n", m.ActiveRooms) +
+				fmt.Sprintf("cpu_usage_percent %.2f\n", m.CPUUsagePercent) +
+				fmt.Sprintf("memory_usage_bytes %d\n", m.MemoryUsageBytes) +
+				fmt.Sprintf("avg_latency_ms %d\n", m.AvgLatencyMs) +
+				fmt.Sprintf("packet_loss_ratio_percent %.2f\n", m.PacketLossRatioPercent) +
+				fmt.Sprintf("kafka_matching_messages %d\n", m.KafkaMatchingMessages),
+		))
 	}
 }
 
